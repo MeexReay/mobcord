@@ -58,9 +58,9 @@ fn create_webview() -> WebView {
     webview
 }
 
-fn on_swipe(_: &gtk::GestureSwipe, x: f64, y: f64) {
-    println!("{x}");
-}
+// fn on_swipe(_: &gtk::GestureSwipe, x: f64, y: f64) {
+//     println!("{x}");
+// }
 
 fn main() -> glib::ExitCode {
     let app = adw::Application::builder().application_id(APP_ID).build();
@@ -92,9 +92,9 @@ fn main() -> glib::ExitCode {
         controller.add_shortcut(ctrl_shift_i);
         webview.add_controller(controller);
 
-        let swipe_controller = gtk::GestureSwipe::new();
-        swipe_controller.connect_swipe(on_swipe);
-        webview.add_controller(swipe_controller);
+        // let swipe_controller = gtk::GestureSwipe::new();
+        // swipe_controller.connect_swipe(on_swipe);
+        // webview.add_controller(swipe_controller);
                     
         window.present();
     });
