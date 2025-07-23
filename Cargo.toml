@@ -1,0 +1,25 @@
+[package]
+name = "mobcord"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gtk-sys = {git = "https://github.com/gtk-rs/gtk4-rs.git", package = "gtk4-sys", branch = "main", version = "0.11"}
+gtk = {git = "https://github.com/gtk-rs/gtk4-rs.git", package = "gtk4", branch = "main", version = "0.11"}
+gdk-sys = {git = "https://github.com/gtk-rs/gtk4-rs.git", package = "gdk4-sys", branch = "main", version = "0.11"}
+gdk = {git = "https://github.com/gtk-rs/gtk4-rs.git", package = "gdk4", branch = "main", version = "0.11"}
+gobject-sys = {git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "main", version = "0.22"}
+glib-sys = {git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "main", version = "0.22"}
+glib = {git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "main", version = "0.22"}
+gio-sys = {git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "main", version = "0.22"}
+gio = {git = "https://github.com/gtk-rs/gtk-rs-core.git", branch = "main", version = "0.22"}
+
+[dependencies.libadwaita]
+git = "https://gitlab.gnome.org/World/Rust/libadwaita-rs.git"
+rev = "be63f8e079e887025fa73b43a6ff6069b2c5a525"
+
+[dependencies.webkit6]
+# git = "https://gitlab.gnome.org/World/Rust/webkit6-rs.git"
+# rev = "4739225db5dd1b4c44d67d6877b73f8ef334ae29"
+git = "https://git.meex.lol/MeexReay/webkit6-rs.git"
+rev = "9d66323ad2fb0359ce59ebe24bb34b3747816d32"
