@@ -402,77 +402,86 @@ function doAlways() {
 
   let styles = document.createElement("style");
   styles.innerHTML = `
+    // remove ugly shadow on top bar in chat
     [class^="upperContainer_"] > div[class^="children_"]:after {
       background: none;
     }
-    
+
+    // add scrollbar on top bar in chat
     [class^="upperContainer_"] {
       overflow-x: scroll;
       overflow-y: hidden;
     }
-    
     [class^="upperContainer_"] > [class^="children_"] {
       min-width: max-content;
     }
 
+    // remove scrollbar from top bar in chat but allow scrolling
     [class^="upperContainer_"]::-webkit-scrollbar {
       display: none;
     }
-    
+
+    // remove threads popups on channels
     [class^="popout_"] {
       display: none;
     }
-    
+
+    // fix profile view
     [class^="focusLock_"] > div,
     [class^="focusLock_"] > div > div,
     [class^="focusLock_"] > div > div > div {
       max-width: 100%;
       width: 100%;
     }
-
     [class^="focusLock_"] > div > div > div > [class^="body_"] > div:nth-of-type(2) > [class^="scroller"] > section:nth-of-type(2) > ul,
     [class^="focusLock_"] > div > div > div > [class^="body_"] > div:nth-of-type(2) > [role="tablist"] {
       flex-wrap: wrap;
       gap: 10px;
     }
-    
     [class^="focusLock_"] > div > div > div > [class^="body_"] > div:nth-of-type(2) > [class^="scroller"] > section:nth-of-type(2) > ul > * {
       margin-left: 0;
     }
-    
+
+    // allow scrolling in settings
     [class^="layer_"]:nth-of-type(2) {
       overflow: scroll;
     }
 
+    // remove download button
     div:has(> div > div > svg > foreignObject > div[data-list-item-id="guildsnav___app-download-button"]) {
       display: none;
     }
-    
+
+    // set base grid (for transitions between chat and sidebar)
     [class^="base_"] {
       grid-template-columns: [start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end];
     }
 
+    // set transitions for chat and sidebar
     [class^="sidebar_"] {
       transition: right 0.1s;
     }
-    
     [class^="page_"] {
       transition: right 0.2s, width 0.4s;
     }
-    
+
+    // remove close button in image view
     [class^="carouselModal_"] [class^="topBar_"] > div:last-of-type {
       display: none;
     }
-    
+
+    // fix image view
     [class^="carouselModal_"] {
       grid-template-columns: none;
       grid-template-rows: none;
     }
-    
+
+    // remove scrollbar from image view
     [class^="layer_"]:has(div > [class^="carouselModal_"]) {
       overflow: hidden;
     }
 
+    // add scrollbar to emoji box
     div:has([id="emoji-picker-tab-panel"]) {
       overflow: scroll;
     }
