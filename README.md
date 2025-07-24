@@ -14,7 +14,7 @@ TODO: make installation instruction
 
 ### As userscript
 
-Webkit2gtk can be pretty laggy on some devices, so it fine to install the mobcord as userscript to your normal browser.
+Webkit2gtk can be quite slow on some devices, so it fine to install the mobcord as userscript to your normal browser.
 To do that, download src/script.js and add it to your userscript manager.
 
 ## Contributing
