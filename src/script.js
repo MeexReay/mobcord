@@ -1,10 +1,19 @@
-let querySelectCaching = {}
+// ==UserScript==
+// @name            Mobcord
+// @description     Discord client for mobile linux
+// @author          MeexReay (https://github.com/MeexReay)
+// @license         WTFPL
+// @match           *://*.discord.com/*
+// @run-at          document-start
+// ==/UserScript==
+
+let querySelectCaching = {};
 
 function querySelect(selector, callback) {
-  // if (selector in querySelectCaching) {
-    // callback(querySelectCaching[selector])
-    // return;
-  // }
+  if (selector in querySelectCaching) {
+    callback(querySelectCaching[selector]);
+    return;
+  }
   
   const existing = document.querySelector(selector);
   if (existing) {
@@ -25,10 +34,10 @@ function querySelect(selector, callback) {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
-let uiState = null
+let uiState = null;
 
 function enterDefaultState() {
-  uiState = "default"
+  uiState = "default";
   
   querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
 }
@@ -38,23 +47,23 @@ function leaveDefaultState() {
 }
 
 function enterChatState() {
-  uiState = "chat"
+  uiState = "chat";
   
   querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] 0fr [guildsEnd] 0fr [channelsEnd] 1fr [end]");
   querySelect('[class^="panels_"]', (o) => o.style.display = "none");
   querySelect('[class^="wrapper_"]', (o) => o.style.width = "0");
 
   querySelect('[class^="bar_"] > [class^="leading"]', (o) => {
-    let leaveButton = document.createElement("div")
+    let leaveButton = document.createElement("div");
     leaveButton.innerHTML = '<svg aria-hidden="true" role="img" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M17.3 18.7a1 1 0 0 0 1.4-1.4L13.42 12l5.3-5.3a1 1 0 0 0-1.42-1.4L12 10.58l-5.3-5.3a1 1 0 0 0-1.4 1.42L10.58 12l-5.3 5.3a1 1 0 1 0 1.42 1.4L12 13.42l5.3 5.3Z" class=""></path></svg>'
     leaveButton.children[0].style.color = "var(--icon-tertiary)";
     leaveButton.style.cursor = "pointer";
     leaveButton.style.marginTop = "4px";
     leaveButton.onclick = () => {
-      leaveChatState()
-      enterDefaultState()
+      leaveChatState();
+      enterDefaultState();
     }
-    o.appendChild(leaveButton)
+    o.appendChild(leaveButton);
   });
 
   // querySelect('[class^="search_"]', (o) => o.style.display = "none");
@@ -80,7 +89,7 @@ function enterOptionsState() {
     o.style.display = null;
   });
   
-  uiState = "options"
+  uiState = "options";
 
   let leaveButton = document.createElement("div")
   leaveButton.innerHTML = '<svg aria-hidden="true" role="img" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M17.3 18.7a1 1 0 0 0 1.4-1.4L13.42 12l5.3-5.3a1 1 0 0 0-1.42-1.4L12 10.58l-5.3-5.3a1 1 0 0 0-1.4 1.42L10.58 12l-5.3 5.3a1 1 0 1 0 1.42 1.4L12 13.42l5.3 5.3Z" class=""></path></svg>'
@@ -102,11 +111,11 @@ function enterOptionsState() {
   leaveButton.id = "leave-options-button";
   
   leaveButton.onclick = () => {
-    leaveOptionsState()
-    enterDefaultState()
+    leaveOptionsState();
+    enterDefaultState();
   }
   
-  document.body.appendChild(leaveButton)
+  document.body.appendChild(leaveButton);
 }
 
 function leaveOptionsState() {
@@ -121,14 +130,178 @@ function leaveOptionsState() {
     o.style.display = "none";
   });
   
-  document.body.querySelector('[id="leave-options-button"]').remove()
+  document.body.querySelector('[id="leave-options-button"]').remove();
 }
 
-let startSwipe = null
+let startSwipe = null;
+
+function touchDown(x, y) {
+  if (startSwipe == null) {
+    if (uiState == "default" && x > 0.6) {
+      startSwipe = [x, y];
+      
+      querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
+
+      querySelect('[class^="page_"]', (o) => {
+        o.style.width = "100vw";
+        o.style.right = "-100%";
+        o.style.position = "absolute";
+        o.style.zIndex = "10";
+      });
+      querySelect('[class^="sidebar_"]', (o) => {
+        o.style.right = "0%";
+      });
+    }
+    
+    if (uiState == "chat" && x < 0.1) {
+      startSwipe = [x, y];
+      
+      querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
+      querySelect('[class^="panels_"]', (o) => o.style.display = null);
+      querySelect('[class^="wrapper_"]', (o) => o.style.width = null);
+
+      querySelect('[class^="page_"]', (o) => {
+        o.style.width = "100vw";
+        o.style.right = "0%";
+        o.style.position = "absolute";
+        o.style.zIndex = "10";
+      });
+      querySelect('[class^="sidebar_"]', (o) => {
+        o.style.right = "0%";
+      });
+    }
+
+    if (startSwipe) {
+      let noSelectStyle = document.createElement("style");
+      noSelectStyle.innerHTML = `
+        * {
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+          -khtml-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+        }`;
+      noSelectStyle.id = "no-select-style";
+      document.body.appendChild(noSelectStyle);
+    }
+  }
+}
+
+function touchMove(x, y) {
+  if (startSwipe != null) {
+    if (uiState == "default" &&
+        startSwipe[0] > 0.6 &&
+        startSwipe[0] > x) {
+      let percent = Math.min((startSwipe[0] - x) / 0.4 * 100, 100);
+
+      querySelect('[class^="page_"]', (o) => {
+        o.style.right = (percent - 100) + "vw";
+      });
+    }
+    
+    if (uiState == "chat" &&
+        startSwipe[0] < 0.1 &&
+        startSwipe[0] < x) {
+      let percent = Math.min((x - startSwipe[0]) / 0.4 * 100, 100);
+
+      querySelect('[class^="page_"]', (o) => {
+        o.style.right = (0 - percent) + "vw";
+      });
+    }
+  }
+}
+
+function touchUp(x, y) {
+  if (startSwipe != null) {
+    document.body.querySelector('[id="no-select-style"]').remove();
+    
+    if (uiState == "default") {
+      querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
+      
+      querySelect('[class^="page_"]', (o) => {
+        o.style.width = null;
+        o.style.right = null;
+        o.style.position = null;
+        o.style.zIndex = null;
+      });
+      querySelect('[class^="sidebar_"]', (o) => {
+        o.style.right = null;
+      });
+
+      if (startSwipe[0] > x && startSwipe[0] > 0.6 && startSwipe[0] - x > 0.2) {
+        leaveDefaultState();
+        enterChatState();
+      }
+    }
+
+    if (uiState == "chat") {
+      querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] 0fr [guildsEnd] 0fr [channelsEnd] 1fr [end]");
+      querySelect('[class^="panels_"]', (o) => o.style.display = "none");
+      querySelect('[class^="wrapper_"]', (o) => o.style.width = "0");
+      
+      querySelect('[class^="page_"]', (o) => {
+        o.style.width = null;
+        o.style.right = null;
+        o.style.position = null;
+        o.style.zIndex = null;
+      });
+      querySelect('[class^="sidebar_"]', (o) => {
+        o.style.right = null;
+      });
+      
+      if (startSwipe[0] < x && startSwipe[0] < 0.1 && x - startSwipe[0] > 0.2) {
+        leaveChatState();
+        enterDefaultState();
+      }
+    }
+    
+    startSwipe = null;
+  }
+}
+
+function bindSwipes() {
+  document.body.addEventListener("mousedown", (event) => {
+    if (event.button == 0) {
+      touchDown(event.clientX / document.documentElement.clientWidth, event.clientY / document.documentElement.clientHeight);
+    }
+  }, true);
+  
+  document.body.addEventListener("mousemove", (event) => {
+    if (event.button == 0) {
+      touchMove(event.clientX / document.documentElement.clientWidth, event.clientY / document.documentElement.clientHeight);
+    }
+  });
+  
+  document.body.addEventListener("mouseup", (event) => {
+    if (event.button == 0) {
+      touchUp(event.clientX / document.documentElement.clientWidth, event.clientY / document.documentElement.clientHeight);
+    }
+  });
+
+  document.body.addEventListener("touchstart", (event) => {
+    if (event.touches.length == 1) {
+      touchDown(event.touches[0].clientX / document.documentElement.clientWidth, event.touches[0].clientY / document.documentElement.clientHeight);
+    }
+  }, true);
+  
+  document.body.addEventListener("touchmove", (event) => {
+    if (event.changedTouches.length == 1) {
+      touchMove(event.changedTouches[0].clientX / document.documentElement.clientWidth, event.changedTouches[0].clientY / document.documentElement.clientHeight);
+    }
+  });
+  
+  document.body.addEventListener("touchend", (event) => {
+    if (event.changedTouches.length == 1) {
+      touchUp(event.changedTouches[0].clientX / document.documentElement.clientWidth, event.changedTouches[0].clientY / document.documentElement.clientHeight);
+    }
+  });
+}
 
 function doAlways() {
   querySelect('[class^="sidebarResizeHandle_"]', (o) => o.remove());
   querySelect('[class^="sidebarList_"]', (o) => o.style.width = "100%");
+  querySelect('[class^="sidebar_"]', (o) => o.style.width = "100vw");
 
   document.ondragstart = () => { return false; };
   
@@ -142,15 +315,13 @@ function doAlways() {
     
     if (o.target.closest('[class^="buttons_"] > button:nth-of-type(2)')) {
       if (uiState == "default") {
-        console.log("enter options menu")
         leaveDefaultState();
         enterOptionsState();
       }
     }
   }, true);
-  
 
-  let styles = document.createElement("style")
+  let styles = document.createElement("style");
   styles.innerHTML = `
     [class^="upperContainer_"] > div[class^="children_"]:after {
       background: none;
@@ -194,138 +365,10 @@ function doAlways() {
       overflow: scroll;
     }
   `;
+  
   document.body.appendChild(styles);
 
-  document.body.addEventListener("mousedown", (event) => {
-    if (event.button == 0 && startSwipe == null) {
-      if (uiState == "default" && event.clientX / document.documentElement.clientWidth > 0.6) {
-        startSwipe = event.clientX;
-        
-        querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
-
-        querySelect('[class^="page_"]', (o) => {
-          o.style.width = "100vw";
-          o.style.right = "-100%";
-          o.style.position = "absolute";
-          o.style.zIndex = "10";
-        });
-        querySelect('[class^="sidebar_"]', (o) => {
-          o.style.width = "100vw";
-          o.style.right = "0%";
-        });
-      }
-      
-      if (uiState == "chat" && event.clientX / document.documentElement.clientWidth < 0.1) {
-        startSwipe = event.clientX;
-        
-        querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
-        querySelect('[class^="panels_"]', (o) => o.style.display = null);
-        querySelect('[class^="wrapper_"]', (o) => o.style.width = null);
-
-        querySelect('[class^="page_"]', (o) => {
-          o.style.width = "100vw";
-          o.style.right = "0%";
-          o.style.position = "absolute";
-          o.style.zIndex = "10";
-        });
-        querySelect('[class^="sidebar_"]', (o) => {
-          o.style.width = "100vw";
-          o.style.right = "0%";
-        });
-      }
-
-      if (startSwipe) {
-        let noSelectStyle = document.createElement("style");
-        noSelectStyle.innerHTML = `* {
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Old versions of Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome, Edge, Opera and Firefox */
-}`;
-        noSelectStyle.id = "no-select-style";
-        document.body.appendChild(noSelectStyle);
-      }
-    }
-  }, true);
-  
-  document.body.addEventListener("mousemove", (event) => {
-    if (event.button == 0 && startSwipe != null) {
-      if (uiState == "default" &&
-          startSwipe / document.documentElement.clientWidth > 0.6 &&
-          startSwipe > event.clientX) {
-        let percent = Math.min((startSwipe - event.clientX) / document.documentElement.clientWidth / 0.4 * 100, 100)
-
-        querySelect('[class^="page_"]', (o) => {
-          o.style.right = (percent - 100) + "vw";
-        });
-      }
-      if (uiState == "chat" &&
-          startSwipe / document.documentElement.clientWidth < 0.1 &&
-          startSwipe < event.clientX) {
-        let percent = Math.min((event.clientX - startSwipe) / document.documentElement.clientWidth / 0.4 * 100, 100)
-
-        querySelect('[class^="page_"]', (o) => {
-          o.style.right = (0 - percent) + "vw";
-        });
-      }
-    }
-  });
-  
-  document.body.addEventListener("mouseup", (event) => {
-    if (event.button == 0 && startSwipe != null) {
-      let from_x = startSwipe / document.documentElement.clientWidth;
-      let to_x = event.clientX / document.documentElement.clientWidth;
-
-      startSwipe = null;
-
-      document.body.querySelector('[id="no-select-style"]').remove();
-      
-      if (uiState == "default") {
-        querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
-        
-        querySelect('[class^="page_"]', (o) => {
-          o.style.width = null;
-          o.style.right = null;
-          o.style.position = null;
-          o.style.zIndex = null;
-        });
-        querySelect('[class^="sidebar_"]', (o) => {
-          o.style.width = null;
-          o.style.right = null;
-        });
-
-        if (from_x > to_x && from_x > 0.6 && from_x - to_x > 0.2) {
-          leaveDefaultState();
-          enterChatState();
-        }
-      }
-  
-      if (uiState == "chat") {
-        querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] 0fr [guildsEnd] 0fr [channelsEnd] 1fr [end]");
-        querySelect('[class^="panels_"]', (o) => o.style.display = "none");
-        querySelect('[class^="wrapper_"]', (o) => o.style.width = "0");
-        
-        querySelect('[class^="page_"]', (o) => {
-          o.style.width = null;
-          o.style.right = null;
-          o.style.position = null;
-          o.style.zIndex = null;
-        });
-        querySelect('[class^="sidebar_"]', (o) => {
-          o.style.width = null;
-          o.style.right = null;
-        });
-        
-        if (from_x < to_x && from_x < 0.1 && to_x - from_x > 0.2) {
-          leaveChatState();
-          enterDefaultState();
-        }
-      }
-    }
-  })
+  bindSwipes();
 }
 
 function onStart() {
@@ -333,4 +376,4 @@ function onStart() {
   enterDefaultState();
 }
 
-onStart()
+onStart();

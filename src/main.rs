@@ -1,16 +1,35 @@
-use std::{error::Error, sync::Arc};
-
 use gdk::{Display, RGBA};
 use gtk::CssProvider;
 use libadwaita as adw;
 use libadwaita::prelude::*;
-use reqwest::header::USER_AGENT;
-use webkit6::{prelude::*, LoadEvent, WebView};
+use webkit6::{prelude::*, LoadEvent, NetworkProxySettings, WebView};
+use clap::Parser;
 
 const APP_ID: &str = "ru.themixray.mobcord";
 
 const BACKGROUND_COLOR: RGBA = RGBA::new(0.07, 0.07, 0.078, 1.0);
 const DEFAULT_SIZE: (i32, i32) = (432, 936);
+
+/// MobCord - discord for mobile linux
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Enable hardware acceleration
+    #[arg(short='H', long)]
+    hardware_acceleration: bool,
+    
+    /// Set user agent string
+    #[arg(short, long, default_value = "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Safari/605.1.15")]
+    user_agent: String,
+
+    /// Set discord app url
+    #[arg(short, long, default_value = "https://discord.com/app")]
+    discord_app: String,
+    
+    /// Set proxy
+    #[arg(short, long)]
+    proxy: Option<String>,
+}
 
 fn load_css() {
     let provider = CssProvider::new();
@@ -45,24 +64,36 @@ fn on_load_changed(webview: &WebView, event: LoadEvent) {
     }
 }
 
-fn create_webview() -> WebView {
+fn create_webview(args: &Args) -> WebView {
     let webview = WebView::new();
     
     let settings = WebViewExt::settings(&webview).unwrap();
     settings.set_enable_developer_extras(true);
+    
+    settings.set_user_agent(Some(&args.user_agent));
+    if args.hardware_acceleration {
+        settings.set_hardware_acceleration_policy(webkit6::HardwareAccelerationPolicy::Always);
+    }
 
+    if let Some(proxy) = &args.proxy {
+        let context = webview.network_session().unwrap();
+        context.set_proxy_settings(
+            webkit6::NetworkProxyMode::Custom,
+            Some(&NetworkProxySettings::new(Some(&proxy), &[]))
+        );
+    }
+    
+    webview.load_uri(&args.discord_app);
+    
     webview.connect_load_changed(on_load_changed);
     webview.set_background_color(&BACKGROUND_COLOR);
-    webview.load_uri("https://discord.com/app");
 
     webview
 }
 
-// fn on_swipe(_: &gtk::GestureSwipe, x: f64, y: f64) {
-//     println!("{x}");
-// }
-
-fn main() -> glib::ExitCode {
+fn main() {
+    let args = Args::parse();
+    
     let app = adw::Application::builder().application_id(APP_ID).build();
     
     app.connect_activate(move |app| {
@@ -72,7 +103,7 @@ fn main() -> glib::ExitCode {
         
         window.set_default_size(DEFAULT_SIZE.0, DEFAULT_SIZE.1);
 
-        let webview = create_webview();
+        let webview = create_webview(&args);
         window.set_content(Some(&webview));
 
         let ctrl_shift_i = gtk::Shortcut::builder()
@@ -92,12 +123,8 @@ fn main() -> glib::ExitCode {
         controller.add_shortcut(ctrl_shift_i);
         webview.add_controller(controller);
 
-        // let swipe_controller = gtk::GestureSwipe::new();
-        // swipe_controller.connect_swipe(on_swipe);
-        // webview.add_controller(swipe_controller);
-                    
         window.present();
     });
     
-    app.run()
+    app.run_with_args::<&str>(&[]);
 }
