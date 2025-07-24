@@ -1,4 +1,4 @@
-DESKTOP_FILE=~/.local/share/applications/ru.themixray.mobcord
+DESKTOP_FILE=~/.local/share/applications/ru.themixray.mobcord.desktop
 
 target/release/mobcord:
 	cargo build -r
