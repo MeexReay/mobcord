@@ -92,8 +92,6 @@ function enterChatState() {
     }, true)
     o.appendChild(leaveButton);
   });
-
-  // querySelect('[class^="search_"]', (o) => o.style.display = "none");
 }
 
 function leaveChatState() {
@@ -488,6 +486,11 @@ function doAlways() {
     }
     #emoji-picker-tab-panel > [class^="wrapper_"] {
       top: 0;
+    }
+
+    /* remove ugly bottom spacing */
+    [class^="channelTextArea"] {
+      margin-bottom: 10px;
     }
   `;
   
