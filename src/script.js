@@ -7,26 +7,26 @@
 // @run-at          document-start
 // ==/UserScript==
 
-let querySelectCaching = {};
+let querySelectCache = {};
 
 function querySelect(selector, callback) {
-  if (selector in querySelectCaching) {
-    callback(querySelectCaching[selector]);
+  if (selector in querySelectCache) {
+    callback(querySelectCache[selector]);
     return;
   }
   
   const existing = document.querySelector(selector);
   if (existing) {
-    querySelectCaching[selector] = existing;
+    querySelectCache[selector] = existing;
     callback(existing);
     return;
   }
 
-  const observer = new MutationObserver((mutations, obs) => {
+  const observer = new MutationObserver((_, obs) => {
     const found = document.querySelector(selector);
     if (found) {
       obs.disconnect();
-      querySelectCaching[selector] = found;
+      querySelectCache[selector] = found;
       callback(found);
     }
   });
@@ -235,7 +235,7 @@ function touchMove(x, y) {
     if (uiState == "default" &&
         startSwipe[0] > 0.8 &&
         startSwipe[0] > x) {
-      let percent = Math.min((startSwipe[0] - x) / 0.3 * 100, 100);
+      let percent = Math.min((startSwipe[0] - x) * 100, 100);
 
       querySelect('[class^="page_"]', (o) => {
         o.style.right = (percent - 100) + "vw";
@@ -245,7 +245,7 @@ function touchMove(x, y) {
     if (uiState == "chat" &&
         startSwipe[0] < 0.2 &&
         startSwipe[0] < x) {
-      let percent = Math.min((x - startSwipe[0]) / 0.3 * 100, 100);
+      let percent = Math.min((x - startSwipe[0]) * 100, 100);
 
       querySelect('[class^="page_"]', (o) => {
         o.style.right = (0 - percent) + "vw";
@@ -445,6 +445,14 @@ function doAlways() {
     
     [class^="base_"] {
       grid-template-columns: [start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end];
+    }
+
+    [class^="sidebar_"] {
+      transition: right 0.1s;
+    }
+    
+    [class^="page_"] {
+      transition: right 0.2s, width 0.2s;
     }
   `;
   
