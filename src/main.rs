@@ -1,8 +1,10 @@
+use std::{fs, path::{Path, PathBuf}};
+
 use gdk::{Display, RGBA};
 use gtk::CssProvider;
 use libadwaita as adw;
 use libadwaita::prelude::*;
-use webkit6::{prelude::*, LoadEvent, NetworkProxySettings, WebView};
+use webkit6::{prelude::*, LoadEvent, NetworkProxySettings, NetworkSession, WebView};
 use clap::Parser;
 
 const APP_ID: &str = "ru.themixray.mobcord";
@@ -64,8 +66,25 @@ fn on_load_changed(webview: &WebView, event: LoadEvent) {
     }
 }
 
-fn create_webview(args: &Args) -> WebView {
-    let webview = WebView::new();
+fn create_webview(work_dir: &Path, args: &Args) -> WebView {
+    let data_directory = work_dir.join("data");
+    let cache_directory = work_dir.join("cache");
+
+    fs::create_dir(&data_directory).expect("data directory creation failure");
+    fs::create_dir(&cache_directory).expect("cache directory creation failure");
+    
+    let network_session = NetworkSession::new(data_directory.to_str(), cache_directory.to_str());
+    
+    if let Some(proxy) = &args.proxy {
+        network_session.set_proxy_settings(
+            webkit6::NetworkProxyMode::Custom,
+            Some(&NetworkProxySettings::new(Some(&proxy), &[]))
+        );
+    }
+
+    let webview = WebView::builder()
+        .network_session(&network_session)
+        .build();
     
     let settings = WebViewExt::settings(&webview).unwrap();
     settings.set_enable_developer_extras(true);
@@ -74,19 +93,11 @@ fn create_webview(args: &Args) -> WebView {
     if args.hardware_acceleration {
         settings.set_hardware_acceleration_policy(webkit6::HardwareAccelerationPolicy::Always);
     }
-
-    if let Some(proxy) = &args.proxy {
-        let context = webview.network_session().unwrap();
-        context.set_proxy_settings(
-            webkit6::NetworkProxyMode::Custom,
-            Some(&NetworkProxySettings::new(Some(&proxy), &[]))
-        );
-    }
-    
-    webview.load_uri(&args.discord_app);
     
     webview.connect_load_changed(on_load_changed);
     webview.set_background_color(&BACKGROUND_COLOR);
+    
+    webview.load_uri(&args.discord_app);
 
     webview
 }
@@ -95,6 +106,10 @@ fn main() {
     let args = Args::parse();
     
     let app = adw::Application::builder().application_id(APP_ID).build();
+
+    let home = std::env::var("HOME").expect("home var not set");
+    let work_dir: PathBuf = format!("{home}/.local/share/mobcord").into();
+    fs::create_dir_all(&work_dir).expect("local share directory creation failure");
     
     app.connect_activate(move |app| {
         let window = adw::ApplicationWindow::new(app);
@@ -103,7 +118,7 @@ fn main() {
         
         window.set_default_size(DEFAULT_SIZE.0, DEFAULT_SIZE.1);
 
-        let webview = create_webview(&args);
+        let webview = create_webview(&work_dir, &args);
         window.set_content(Some(&webview));
 
         let ctrl_shift_i = gtk::Shortcut::builder()
