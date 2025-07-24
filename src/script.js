@@ -452,7 +452,7 @@ function doAlways() {
     }
     
     [class^="page_"] {
-      transition: right 0.2s, width 0.2s;
+      transition: right 0.2s, width 0.4s;
     }
   `;
   
