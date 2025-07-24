@@ -137,7 +137,7 @@ let startSwipe = null;
 
 function touchDown(x, y) {
   if (startSwipe == null) {
-    if (uiState == "default" && x > 0.6) {
+    if (uiState == "default" && x > 0.8) {
       startSwipe = [x, y];
       
       querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
@@ -153,7 +153,7 @@ function touchDown(x, y) {
       });
     }
     
-    if (uiState == "chat" && x < 0.1) {
+    if (uiState == "chat" && x < 0.2) {
       startSwipe = [x, y];
       
       querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
@@ -191,9 +191,9 @@ function touchDown(x, y) {
 function touchMove(x, y) {
   if (startSwipe != null) {
     if (uiState == "default" &&
-        startSwipe[0] > 0.6 &&
+        startSwipe[0] > 0.8 &&
         startSwipe[0] > x) {
-      let percent = Math.min((startSwipe[0] - x) / 0.4 * 100, 100);
+      let percent = Math.min((startSwipe[0] - x) / 0.3 * 100, 100);
 
       querySelect('[class^="page_"]', (o) => {
         o.style.right = (percent - 100) + "vw";
@@ -201,9 +201,9 @@ function touchMove(x, y) {
     }
     
     if (uiState == "chat" &&
-        startSwipe[0] < 0.1 &&
+        startSwipe[0] < 0.2 &&
         startSwipe[0] < x) {
-      let percent = Math.min((x - startSwipe[0]) / 0.4 * 100, 100);
+      let percent = Math.min((x - startSwipe[0]) / 0.3 * 100, 100);
 
       querySelect('[class^="page_"]', (o) => {
         o.style.right = (0 - percent) + "vw";
@@ -229,7 +229,7 @@ function touchUp(x, y) {
         o.style.right = null;
       });
 
-      if (startSwipe[0] > x && startSwipe[0] > 0.6 && startSwipe[0] - x > 0.2) {
+      if (startSwipe[0] > x && startSwipe[0] > 0.8 && startSwipe[0] - x > 0.3) {
         leaveDefaultState();
         enterChatState();
       }
@@ -250,7 +250,7 @@ function touchUp(x, y) {
         o.style.right = null;
       });
       
-      if (startSwipe[0] < x && startSwipe[0] < 0.1 && x - startSwipe[0] > 0.2) {
+      if (startSwipe[0] < x && startSwipe[0] < 0.2 && x - startSwipe[0] > 0.3) {
         leaveChatState();
         enterDefaultState();
       }
