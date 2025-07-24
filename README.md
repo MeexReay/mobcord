@@ -6,11 +6,28 @@ Discord client for mobile linux
 
 ### As a standalone app
 
+#### Prebuilt binary
+
+Download prebuilt binary from releases and run:
+
 ```sh
-cargo run
+git clone https://github.com/MeexReay/mobcord
+cd mobcord
+mkdir -p target
+mkdir -p target/release
+cp /path/to/binary/mobcord target/release/mobcord
+make install
 ```
 
-TODO: make installation instruction
+#### Build manually
+
+Install all dependencies (see shell.nix) and run:
+
+```sh
+git clone https://github.com/MeexReay/mobcord
+cd mobcord
+make install
+```
 
 ### As userscript
 
