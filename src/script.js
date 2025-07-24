@@ -34,6 +34,8 @@ function querySelect(selector, callback) {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
+console.log()
+
 let uiState = null;
 
 function enterDefaultState() {
@@ -399,7 +401,11 @@ function doAlways() {
 
 function onStart() {
   doAlways();
-  enterDefaultState();
+  if (document.location.path == "/login") {
+    console.log("we are in login state")
+  } else {
+    enterDefaultState();
+  }
 }
 
 onStart();

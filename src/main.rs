@@ -67,13 +67,17 @@ fn on_load_changed(webview: &WebView, event: LoadEvent) {
 }
 
 fn create_webview(work_dir: &Path, args: &Args) -> WebView {
-    let data_directory = work_dir.join("data");
-    let cache_directory = work_dir.join("cache");
+    let data_dir = work_dir.join("data");
+    let cache_dir = work_dir.join("cache");
 
-    fs::create_dir(&data_directory).expect("data directory creation failure");
-    fs::create_dir(&cache_directory).expect("cache directory creation failure");
+    if !fs::exists(&data_dir).unwrap_or_default() {
+        fs::create_dir(&data_dir).expect("data directory creation failure");
+    }
+    if !fs::exists(&cache_dir).unwrap_or_default() {
+        fs::create_dir(&cache_dir).expect("cache directory creation failure");
+    }
     
-    let network_session = NetworkSession::new(data_directory.to_str(), cache_directory.to_str());
+    let network_session = NetworkSession::new(data_dir.to_str(), cache_dir.to_str());
     
     if let Some(proxy) = &args.proxy {
         network_session.set_proxy_settings(
@@ -109,7 +113,9 @@ fn main() {
 
     let home = std::env::var("HOME").expect("home var not set");
     let work_dir: PathBuf = format!("{home}/.local/share/mobcord").into();
-    fs::create_dir_all(&work_dir).expect("local share directory creation failure");
+    if !fs::exists(&work_dir).unwrap_or_default() {
+        fs::create_dir_all(&work_dir).expect("local share directory creation failure");
+    }
     
     app.connect_activate(move |app| {
         let window = adw::ApplicationWindow::new(app);
