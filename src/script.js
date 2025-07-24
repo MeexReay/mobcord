@@ -298,6 +298,27 @@ function bindSwipes() {
   });
 }
 
+let startHold = null
+let startHoldTime = null
+
+function bindRightClick() {
+  document.body.addEventListener("touchstart", (event) => {
+    if (startHold == null && event.touches.length == 1) {
+      startHold = [event.touches[0].clientX, event.touches[1].clientY];
+      startHoldTime = Date.now();
+    }
+  }, true);
+  
+  document.body.addEventListener("touchend", (event) => {
+    if (startHold != null && event.changedTouches.length == 1 &&
+        Math.abs(event.changedTouches[0].clientX - event.clientX) < 20 &&
+        Math.abs(event.changedTouches[0].clientY - event.clientY) < 20) {
+      const event = Object.assign(event.changedTouches[0], event);
+      document.dispatchEvent(new MouseEvent("contextmenu", event));
+    }
+  });
+}
+
 function doAlways() {
   querySelect('[class^="sidebarResizeHandle_"]', (o) => o.remove());
   querySelect('[class^="sidebarList_"]', (o) => o.style.width = "100%");
@@ -364,11 +385,16 @@ function doAlways() {
     [class^="layer_"]:nth-of-type(2) {
       overflow: scroll;
     }
+
+    div:has(> div > div > svg > foreignObject > div[data-list-item-id="guildsnav___app-download-button"]) {
+      display: none;
+    }
   `;
   
   document.body.appendChild(styles);
 
   bindSwipes();
+  bindRightClick();
 }
 
 function onStart() {
