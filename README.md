@@ -19,8 +19,8 @@ To do that, download src/script.js and add it to your userscript manager.
 
 ## See more
 
-- [Vendroid](https://github.com/Vencord/Vendroid) - vencord for android, uses discord web too
-- [Vesktop on flathub](https://flathub.org/apps/dev.vencord.Vesktop) - works on postmarketOS 
+- [Vendroid](https://github.com/Vencord/Vendroid) - works on waydroid, uses discord web too
+- [Vesktop on flathub](https://flathub.org/apps/dev.vencord.Vesktop) - works on postmarketOS, no mobile patches
 
 ## Contributing
 
