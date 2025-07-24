@@ -1,10 +1,11 @@
 use std::{fs, path::{Path, PathBuf}};
 
 use gdk::{Display, RGBA};
-use gtk::CssProvider;
-use libadwaita as adw;
-use libadwaita::prelude::*;
-use webkit6::{prelude::*, LoadEvent, NetworkProxySettings, NetworkSession, WebView};
+use gio::{ffi::GListStore, Cancellable};
+use glib::{enums::EnumValuesStorage, GStringPtr};
+use gtk::{CssProvider, FileDialog, StringObject};
+use libadwaita::{self as adw, prelude::AdwApplicationWindowExt, ApplicationWindow};
+use webkit6::{prelude::*, FileChooserRequest, LoadEvent, NetworkProxySettings, NetworkSession, WebView};
 use clap::Parser;
 
 const APP_ID: &str = "ru.themixray.mobcord";
@@ -35,9 +36,9 @@ struct Args {
 
 fn load_css() {
     let provider = CssProvider::new();
-    provider.load_from_data(&format!("
+    provider.load_from_bytes(&format!("
         * {{ background-color: {}; }}
-    ", BACKGROUND_COLOR.to_string()));
+    ", BACKGROUND_COLOR.to_string()).as_bytes().into());
 
     gtk::style_context_add_provider_for_display(
         &Display::default().expect("Could not connect to a display."),
@@ -66,7 +67,42 @@ fn on_load_changed(webview: &WebView, event: LoadEvent) {
     }
 }
 
-fn create_webview(work_dir: &Path, args: &Args) -> WebView {
+fn on_file_chooser(window: &ApplicationWindow, _: &WebView, request: &FileChooserRequest) -> bool {
+    let file_dialog = FileDialog::builder().build();
+
+    file_dialog.open_multiple(
+        Some(window),
+        None::<&Cancellable>,
+        {
+            let request = request.clone();
+            
+            move |list| {
+                match list {
+                    Ok(list) => {
+                        let mut strings: Vec<String> = Vec::new();
+                        for i in 0..list.n_items() {
+                            if let Some(obj) = list.item(i) {
+                                let value = obj.to_value();
+                                let Ok(obj): Result<gio::File, _> = value.get() else { continue; };
+                                let Some(path) = obj.path() else { continue; };
+                                let Some(path) = path.to_str() else { continue; };
+                                strings.push(path.to_string());
+                            }
+                        }
+                        request.select_files(&strings.iter().map(|o|o.as_str()).collect::<Vec<&str>>());
+                    }, Err(err) => {
+                        println!("file chooser error: {err}");
+                        request.cancel();
+                    }
+                }
+            }
+        }
+    );
+
+    true
+}
+
+fn create_webview(window: &ApplicationWindow, work_dir: &Path, args: &Args) -> WebView {
     let data_dir = work_dir.join("data");
     let cache_dir = work_dir.join("cache");
 
@@ -89,6 +125,14 @@ fn create_webview(work_dir: &Path, args: &Args) -> WebView {
     let webview = WebView::builder()
         .network_session(&network_session)
         .build();
+
+    webview.connect_run_file_chooser({
+        let window = window.clone();
+        
+        move |webview, request| {
+            on_file_chooser(&window, &webview, request)
+        }
+    });
     
     let settings = WebViewExt::settings(&webview).unwrap();
     settings.set_enable_developer_extras(true);
@@ -124,7 +168,7 @@ fn main() {
         
         window.set_default_size(DEFAULT_SIZE.0, DEFAULT_SIZE.1);
 
-        let webview = create_webview(&work_dir, &args);
+        let webview = create_webview(&window, &work_dir, &args);
         window.set_content(Some(&webview));
 
         let ctrl_shift_i = gtk::Shortcut::builder()

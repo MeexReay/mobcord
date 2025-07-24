@@ -458,11 +458,8 @@ function doAlways() {
     }
 
     /* set transitions for chat and sidebar */
-    [class^="sidebar_"] {
-      transition: right 0.1s;
-    }
     [class^="page_"] {
-      transition: right 0.2s, width 0.4s;
+      transition: right 0.1s, width 0.4s;
     }
 
     /* remove close button in image view */
