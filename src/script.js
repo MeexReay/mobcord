@@ -39,20 +39,43 @@ let uiState = null;
 function enterDefaultState() {
   uiState = "default";
   
-  querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
+  querySelect('[class^="page_"]', (o) => {
+    // o.style.width = "100vw";
+    o.style.right = "-100vw";
+    o.style.position = "absolute";
+    o.style.zIndex = "10";
+  });
+  querySelect('[class^="sidebar_"]', (o) => {
+    o.style.right = "0%";
+  });
 }
 
 function leaveDefaultState() {
-  querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] min-content [channelsEnd] 1fr [end]");
+  querySelect('[class^="page_"]', (o) => {
+    // o.style.width = null;
+    o.style.right = null;
+    o.style.position = null;
+    o.style.zIndex = null;
+  });
+  querySelect('[class^="sidebar_"]', (o) => {
+    o.style.right = null;
+  });
 }
 
 function enterChatState() {
   uiState = "chat";
   
-  querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] 0fr [guildsEnd] 0fr [channelsEnd] 1fr [end]");
-  querySelect('[class^="panels_"]', (o) => o.style.display = "none");
-  querySelect('[class^="wrapper_"]', (o) => o.style.width = "0");
-
+  querySelect('[class^="page_"]', (o) => {
+    o.style.width = "100vw";
+    o.style.right = "0%";
+    o.style.position = "absolute";
+    o.style.zIndex = "10";
+  });
+  querySelect('[class^="sidebar_"]', (o) => {
+    o.style.right = "0%";
+    o.style.pointerEvents = "none";
+  });
+  
   querySelect('[class^="bar_"] > [class^="leading"]', (o) => {
     let leaveButton = document.createElement("div");
     leaveButton.innerHTML = '<svg aria-hidden="true" role="img" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M17.3 18.7a1 1 0 0 0 1.4-1.4L13.42 12l5.3-5.3a1 1 0 0 0-1.42-1.4L12 10.58l-5.3-5.3a1 1 0 0 0-1.4 1.42L10.58 12l-5.3 5.3a1 1 0 1 0 1.42 1.4L12 13.42l5.3 5.3Z" class=""></path></svg>'
@@ -70,9 +93,17 @@ function enterChatState() {
 }
 
 function leaveChatState() {
-  querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] min-content [channelsEnd] 1fr [end]");
-  querySelect('[class^="panels_"]', (o) => o.style.display = null);
-  querySelect('[class^="wrapper_"]', (o) => o.style.width = null);
+  querySelect('[class^="page_"]', (o) => {
+    o.style.width = null;
+    o.style.right = null;
+    o.style.position = null;
+    o.style.zIndex = null;
+  });
+  querySelect('[class^="sidebar_"]', (o) => {
+    o.style.right = null;
+    o.style.pointerEvents = null;
+  });
+  
   querySelect('[class^="bar_"] > [class^="leading"]', (o) => o.children[0].remove());
   // querySelect('[class^="search_"]', (o) => o.style.display = null);
 }
@@ -171,37 +202,15 @@ let startSwipe = null;
 function touchDown(x, y) {
   if (startSwipe == null) {
     if (uiState == "default" && x > 0.8) {
-      startSwipe = [x, y];
-      
-      querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
-
       querySelect('[class^="page_"]', (o) => {
         o.style.width = "100vw";
-        o.style.right = "-100%";
-        o.style.position = "absolute";
-        o.style.zIndex = "10";
       });
-      querySelect('[class^="sidebar_"]', (o) => {
-        o.style.right = "0%";
-      });
+      
+      startSwipe = [x, y];
     }
     
     if (uiState == "chat" && x < 0.2) {
       startSwipe = [x, y];
-      
-      querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
-      querySelect('[class^="panels_"]', (o) => o.style.display = null);
-      querySelect('[class^="wrapper_"]', (o) => o.style.width = null);
-
-      querySelect('[class^="page_"]', (o) => {
-        o.style.width = "100vw";
-        o.style.right = "0%";
-        o.style.position = "absolute";
-        o.style.zIndex = "10";
-      });
-      querySelect('[class^="sidebar_"]', (o) => {
-        o.style.right = "0%";
-      });
     }
 
     if (startSwipe) {
@@ -250,18 +259,13 @@ function touchUp(x, y) {
     document.body.querySelector('[id="no-select-style"]').remove();
     
     if (uiState == "default") {
-      querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end]");
-      
       querySelect('[class^="page_"]', (o) => {
         o.style.width = null;
-        o.style.right = null;
-        o.style.position = null;
-        o.style.zIndex = null;
       });
-      querySelect('[class^="sidebar_"]', (o) => {
-        o.style.right = null;
-      });
-
+      
+      leaveDefaultState();
+      enterDefaultState();
+      
       if (startSwipe[0] > x && startSwipe[0] > 0.8 && startSwipe[0] - x > 0.3) {
         leaveDefaultState();
         enterChatState();
@@ -269,19 +273,8 @@ function touchUp(x, y) {
     }
 
     if (uiState == "chat") {
-      querySelect('[class^="base_"]', (o) => o.style.gridTemplateColumns = "[start] 0fr [guildsEnd] 0fr [channelsEnd] 1fr [end]");
-      querySelect('[class^="panels_"]', (o) => o.style.display = "none");
-      querySelect('[class^="wrapper_"]', (o) => o.style.width = "0");
-      
-      querySelect('[class^="page_"]', (o) => {
-        o.style.width = null;
-        o.style.right = null;
-        o.style.position = null;
-        o.style.zIndex = null;
-      });
-      querySelect('[class^="sidebar_"]', (o) => {
-        o.style.right = null;
-      });
+      leaveChatState();
+      enterChatState();
       
       if (startSwipe[0] < x && startSwipe[0] < 0.2 && x - startSwipe[0] > 0.3) {
         leaveChatState();
@@ -382,6 +375,7 @@ function doAlways() {
   querySelect('[class^="sidebarResizeHandle_"]', (o) => o.remove());
   querySelect('[class^="sidebarList_"]', (o) => o.style.width = "100%");
   querySelect('[class^="sidebar_"]', (o) => o.style.width = "100vw");
+  // querySelect('[class^="content_"]', (o) => o.style.width = "100vw");
 
   document.ondragstart = () => { return false; };
   
@@ -447,6 +441,10 @@ function doAlways() {
 
     div:has(> div > div > svg > foreignObject > div[data-list-item-id="guildsnav___app-download-button"]) {
       display: none;
+    }
+    
+    [class^="base_"] {
+      grid-template-columns: [start] min-content [guildsEnd] 1fr [channelsEnd] 0fr [end];
     }
   `;
   
