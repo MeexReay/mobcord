@@ -468,6 +468,14 @@ function doAlways() {
       grid-template-columns: none;
       grid-template-rows: none;
     }
+    
+    [class^="layer_"]:has(div > [class^="carouselModal_"]) {
+      overflow: hidden;
+    }
+
+    div:has([id="emoji-picker-tab-panel"]) {
+      overflow: scroll;
+    }
   `;
   
   document.body.appendChild(styles);
