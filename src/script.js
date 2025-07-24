@@ -34,8 +34,6 @@ function querySelect(selector, callback) {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
-console.log()
-
 let uiState = null;
 
 function enterDefaultState() {
@@ -133,6 +131,39 @@ function leaveOptionsState() {
   });
   
   document.body.querySelector('[id="leave-options-button"]').remove();
+}
+
+function enterLoginState() {
+  uiState = "login";
+  
+  console.log("we are in login state");
+  
+  let styles = document.createElement("style");
+  styles.innerHTML = `
+    [class^="centeringWrapper_"] > div > [class^="verticalSeparator_"] {
+      display: none;
+    }
+    
+    [class^="centeringWrapper_"] > div > [class^="transitionGroup_"] {
+      display: flex;
+    }
+
+    [class^="centeringWrapper_"] > div {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 50px;
+    }
+    
+    [class^="centeringWrapper_"] [class^="qrLoginInner"] > div:nth-of-type(2) {
+      display: none;
+    }
+  `;
+
+  document.body.appendChild(styles);
+}
+
+function leaveLoginState() {
+  // unused
 }
 
 let startSwipe = null;
@@ -321,7 +352,33 @@ function bindRightClick() {
   });
 }
 
+function catchUrlChange() {
+  const { pushState, replaceState } = window.history;
+
+  window.history.pushState = function (...args) {
+    pushState.apply(window.history, args);
+    window.dispatchEvent(new Event('pushState'));
+  };
+
+  window.history.replaceState = function (...args) {
+    replaceState.apply(window.history, args);
+    window.dispatchEvent(new Event('replaceState'));
+  };
+
+  function onChangeUrl() {
+    if (document.location.pathname == "/login" && uiState != "login") {
+      doAlways();
+    }
+  }
+
+  window.addEventListener('popstate', onChangeUrl);
+  window.addEventListener('replaceState', onChangeUrl);
+  window.addEventListener('pushState', onChangeUrl);
+}
+
 function doAlways() {
+  catchUrlChange();
+  
   querySelect('[class^="sidebarResizeHandle_"]', (o) => o.remove());
   querySelect('[class^="sidebarList_"]', (o) => o.style.width = "100%");
   querySelect('[class^="sidebar_"]', (o) => o.style.width = "100vw");
@@ -397,15 +454,12 @@ function doAlways() {
 
   bindSwipes();
   bindRightClick();
-}
-
-function onStart() {
-  doAlways();
-  if (document.location.path == "/login") {
-    console.log("we are in login state")
+  
+  if (document.location.pathname == "/login") {
+    enterLoginState();
   } else {
     enterDefaultState();
   }
 }
 
-onStart();
+doAlways()
