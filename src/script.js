@@ -26,7 +26,7 @@ function querySelect(selector, callback) {
     const found = document.querySelector(selector);
     if (found) {
       obs.disconnect();
-      querySelectCaching[selector] = existing;
+      querySelectCaching[selector] = found;
       callback(found);
     }
   });
