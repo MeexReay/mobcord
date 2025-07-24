@@ -82,10 +82,14 @@ function enterChatState() {
     leaveButton.children[0].style.color = "var(--icon-tertiary)";
     leaveButton.style.cursor = "pointer";
     leaveButton.style.marginTop = "4px";
-    leaveButton.onclick = () => {
+    leaveButton.addEventListener("touchdown", () => {
       leaveChatState();
       enterDefaultState();
-    }
+    }, true)
+    leaveButton.addEventListener("mousedown", () => {
+      leaveChatState();
+      enterDefaultState();
+    }, true)
     o.appendChild(leaveButton);
   });
 
@@ -139,6 +143,7 @@ function enterOptionsState() {
   leaveButton.style.display = "flex";
   leaveButton.style.alignItems = "center";
   leaveButton.style.justifyContent = "center";
+  leaveButton.style.background = "var(--background-base-lowest)";
   leaveButton.id = "leave-options-button";
   
   leaveButton.onclick = () => {
@@ -453,6 +458,15 @@ function doAlways() {
     
     [class^="page_"] {
       transition: right 0.2s, width 0.4s;
+    }
+    
+    [class^="carouselModal_"] [class^="topBar_"] > div:last-of-type {
+      display: none;
+    }
+    
+    [class^="carouselModal_"] {
+      grid-template-columns: none;
+      grid-template-rows: none;
     }
   `;
   
