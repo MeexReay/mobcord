@@ -42,7 +42,6 @@ function querySelect(selector, callback, not_prev=false) {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
-
 function querySelectAlways(selector, callback) {
   const existing = document.querySelectorAll(selector);
   for (found of existing) {
@@ -414,17 +413,27 @@ function catchUrlChange() {
 }
 
 function bindTextBoxFocus() {
-  querySelectAlways('[role="textbox"]', o => {
-    console.log(o)
-    o.blur();
-    o.addEventListener("focus", e => {
-      console.log(allowTextBoxFocus);
-      if (!allowTextBoxFocus) {
-        e.preventDefault();
-        o.blur();
-      }
-    });
-  });
+  querySelectAlways(
+    '[role="textbox"]',
+    o => {
+      o.blur();
+      o.addEventListener("focus", e => {
+        console.log(allowTextBoxFocus);
+        if (!allowTextBoxFocus) {
+          e.preventDefault();
+          o.blur();
+        }
+      })
+    }
+  );
+  
+  document.addEventListener("focus", e => {
+    console.log(allowTextBoxFocus);
+    if (o.target.closest('[role="textbox"]') && !allowTextBoxFocus) {
+      e.preventDefault();
+      o.blur();
+    }
+  }, true);
   
   document.addEventListener("click", o => {
     let textbox = o.target.closest('[role="textbox"]')
