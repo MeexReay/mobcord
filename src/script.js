@@ -9,14 +9,18 @@
 
 let querySelectCache = {};
 
-function querySelect(selector, callback) {
-  if (selector in querySelectCache) {
+function querySelect(selector, callback, not_prev=false) {
+  if (!not_prev && selector in querySelectCache) {
     callback(querySelectCache[selector]);
     return;
   }
   
   const existing = document.querySelector(selector);
-  if (existing) {
+  if (existing && (
+    !not_prev ||
+    !(selector in querySelectCache) ||
+    existing != querySelectCache[selector]
+  )) {
     querySelectCache[selector] = existing;
     callback(existing);
     return;
@@ -24,7 +28,11 @@ function querySelect(selector, callback) {
 
   const observer = new MutationObserver((_, obs) => {
     const found = document.querySelector(selector);
-    if (found) {
+    if (found && (
+      !not_prev ||
+      !(selector in querySelectCache) ||
+      found != querySelectCache[selector]
+    )) {
       obs.disconnect();
       querySelectCache[selector] = found;
       callback(found);
@@ -34,10 +42,39 @@ function querySelect(selector, callback) {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
+
+function querySelectAlways(selector, callback) {
+  const existing = document.querySelectorAll(selector);
+  for (found of existing) {
+    callback(found);
+  }
+
+  const observer = new MutationObserver((mutations, _) => {
+    for (let mutation of mutations) {
+      for (let node of mutation.addedNodes) {
+        if (node.nodeType == 1) {
+          if (node.matches(selector)) { 
+            callback(node);
+          }
+          for (found of node.querySelectorAll(selector)) {
+            callback(found);
+          }
+        }
+      }
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
 let uiState = null;
+
+let allowTextBoxFocus = false;
 
 function enterDefaultState() {
   uiState = "default";
+
+  allowTextBoxFocus = false;
   
   querySelect('[class^="page_"]', (o) => {
     // o.style.width = "100vw";
@@ -64,7 +101,11 @@ function leaveDefaultState() {
 
 function enterChatState() {
   uiState = "chat";
-  
+
+  // setTimeout(() => {
+  //   allowTextBoxFocus = true;
+  // }, 3000)
+
   querySelect('[class^="page_"]', (o) => {
     o.style.width = "100vw";
     o.style.right = "0%";
@@ -372,6 +413,29 @@ function catchUrlChange() {
   window.addEventListener('pushState', onChangeUrl);
 }
 
+function bindTextBoxFocus() {
+  querySelectAlways('[role="textbox"]', o => {
+    console.log(o)
+    o.blur();
+    o.addEventListener("focus", e => {
+      console.log(allowTextBoxFocus);
+      if (!allowTextBoxFocus) {
+        e.preventDefault();
+        o.blur();
+      }
+    });
+  });
+  
+  document.addEventListener("click", o => {
+    let textbox = o.target.closest('[role="textbox"]')
+
+    if (textbox) {
+      allowTextBoxFocus = true;
+      textbox.focus();
+    }
+  }, true);
+}
+
 function doAlways() {
   catchUrlChange();
   
@@ -498,6 +562,7 @@ function doAlways() {
 
   bindSwipes();
   bindRightClick();
+  bindTextBoxFocus();
   
   if (document.location.pathname == "/login") {
     enterLoginState();
