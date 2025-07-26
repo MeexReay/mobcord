@@ -151,16 +151,16 @@ function leaveChatState() {
 }
 
 function enterOptionsState() {
-  querySelect('[class^="layer_"]:nth-of-type(1)', o => {
-    o.setAttribute("aria-hidden", "true");
-    o.style.opacity = "0";
-    o.style.display = "none";
-  });
-  querySelect('[class^="layer_"]:nth-of-type(2)', o => {
-    o.setAttribute("aria-hidden", "false");
-    o.style.opacity = null;
-    o.style.display = null;
-  });
+  // querySelect('[class^="layer_"]:nth-of-type(1)', o => {
+  //   o.setAttribute("aria-hidden", "true");
+  //   o.style.opacity = "0";
+  //   o.style.display = "none";
+  // });
+  // querySelect('[class^="layer_"]:nth-of-type(2)', o => {
+  //   o.setAttribute("aria-hidden", "false");
+  //   o.style.opacity = null;
+  //   o.style.display = null;
+  // });
   
   uiState = "options";
 
@@ -193,16 +193,25 @@ function enterOptionsState() {
 }
 
 function leaveOptionsState() {
-  querySelect('[class^="layer_"]:nth-of-type(1)', o => {
-    o.setAttribute("aria-hidden", "false");
-    o.style.opacity = null;
-    o.style.display = null;
-  });
-  querySelect('[class^="layer_"]:nth-of-type(2)', o => {
-    o.setAttribute("aria-hidden", "true");
-    o.style.opacity = "0";
-    o.style.display = "none";
-  });
+  window.dispatchEvent(new KeyboardEvent('keydown', {
+    key: 'Escape',
+    keyCode: 27,
+    code: "Escape",
+    which: 27,
+    shiftKey: false,
+    ctrlKey: false,
+    metaKey: false
+  }));
+  // querySelect('[class^="layer_"]:nth-of-type(1)', o => {
+  //   o.setAttribute("aria-hidden", "false");
+  //   o.style.opacity = null;
+  //   o.style.display = null;
+  // });
+  // querySelect('[class^="layer_"]:nth-of-type(2)', o => {
+  //   o.setAttribute("aria-hidden", "true");
+  //   o.style.opacity = "0";
+  //   o.style.display = "none";
+  // });
   
   document.body.querySelector('[id="leave-options-button"]').remove();
 }
@@ -445,6 +454,16 @@ function bindTextBoxFocus() {
   }, true);
 }
 
+function bindOptionsLayer() {
+  querySelectAlways('[class^="layer_"][aria-hidden="false"] > [class^="standardSidebarView_"]', o => {
+    console.log(o)
+    if (uiState == "default") {
+      leaveDefaultState();
+      enterOptionsState();
+    }
+  })
+}
+
 function onLoadInternal() {
   catchUrlChange();
   
@@ -456,17 +475,10 @@ function onLoadInternal() {
   document.ondragstart = () => { return false; };
   
   document.addEventListener("click", o => {
-    if (o.target.closest('[class^="link_"]')) {
+    if (o.target.closest('[class^="link_"]') && !o.target.closest('[class^="linkTop_"] > [class^="children_"] > [class^="iconItem_"]')) {
       if (uiState == "default") {
         leaveDefaultState();
         enterChatState();
-      }
-    }
-    
-    if (o.target.closest('[class^="buttons_"] > button:nth-of-type(2)')) {
-      if (uiState == "default") {
-        leaveDefaultState();
-        enterOptionsState();
       }
     }
   }, true);
@@ -587,6 +599,7 @@ function onLoadInternal() {
   bindSwipes();
   bindRightClick();
   bindTextBoxFocus();
+  bindOptionsLayer();
   
   if (document.location.pathname == "/login") {
     enterLoginState();
