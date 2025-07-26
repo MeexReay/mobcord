@@ -560,22 +560,45 @@ function onLoadInternal() {
       transition: right 0.1s, width 0.4s;
     }
 
-    /* remove close button in image view */
-    [class^="carouselModal_"] [class^="topBar_"] > div:last-of-type {
-      display: none;
-    }
-
     /* fix image view */
+    [class^="carouselModal_"] [class^="author_"] {
+      width: max-content;
+    }
+    [class^="carouselModal_"] [class^="topBar_"] {
+      display: flex;
+      width: 100%;
+      margin-bottom: auto;
+    }
+    [class^="carouselModal_"] [class^="mediaArea_"] {
+      margin-bottom: auto;
+    }
+    [class^="carouselModal_"] [class^="topBar_"] > div:nth-of-type(1) {
+      align-self: start;
+      justify-self: start;
+      width: 40px;
+      margin-right: 2px;
+    }
+    [class^="carouselModal_"] [class^="topBar_"] > [class^="actionButtons_"] {
+      margin-left: auto;
+      margin-right: 5px;
+    }
     [class^="carouselModal_"] {
-      grid-template-columns: none;
-      grid-template-rows: none;
+      width: 100%;
+      height: 100%;
+      position: unset;
+      display: flex;
+      padding: 30px 24px;
+      box-sizing: border-box;
+      flex-direction: column;
+      justify-content: center;
+      margin: 0;
     }
-
-    /* remove scrollbar from image view */
-    [class^="layer_"]:has(div > [class^="carouselModal_"]) {
-      overflow: hidden;
+    [class^="focusLock_"] {
+      width: 100%;
+      height: 100%;
     }
-
+    
+    
     /* fix emoji picker */
     #emoji-picker-tab-panel,
     [class^="emojiPicker_"],  {
