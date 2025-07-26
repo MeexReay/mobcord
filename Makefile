@@ -2,10 +2,7 @@ DESTDIR ?= ~/.local
 
 DESKTOP_FILE := $(DESTDIR)/share/applications/ru.themixray.mobcord.desktop
 
-TARGETS := x86_64-unknown-linux-musl \
-	x86_64-unknown-linux-gnu \
-	aarch64-unknown-linux-musl \
-	aarch64-unknown-linux-gnu
+TARGETS := x86_64-unknown-linux-musl x86_64-unknown-linux-gnu aarch64-unknown-linux-musl aarch64-unknown-linux-gnu
 
 DOCKER_VOID_x86_64-unknown-linux-musl := --platform amd64 ghcr.io/void-linux/void-musl:20250701r1@sha256:7d31856cf59e50cd38bd586b7a2e06a33ff6bb0525fb7daffc24faa3196fc3da	
 DOCKER_VOID_x86_64-unknown-linux-gnu := --platform amd64 ghcr.io/void-linux/void-glibc:20250701r1@sha256:2e3696ea86fa500d775fdd7270ec8bacf367397192d9fd9bf6e55ee7d90dd2d8
@@ -33,8 +30,6 @@ all: $(PACKAGES) $(TARGETS)
 		rm -rf $$build_dir; \
 	done
 
-	cp $(PACKAGES) build
-
 	mkdir -p build/mobcord-legcord
 	cp src/script.js build/mobcord-legcord/index.js
 	echo "export function onLoad() { onLoadInternal(); }" >> build/mobcord-legcord/index.js
@@ -59,45 +54,36 @@ target/%/release/mobcord:
 	"
 	[ -f $@ ]
 
-PACKAGES += target/mobcord-alpine-aarch64.apk
-target/mobcord-alpine-aarch64.apk:
-	# [ -d dabuild ] || (git clone https://gitlab.alpinelinux.org/alpine/docker-abuild.git dabuild && make -C dabuild)
-	# docker pull registry.alpinelinux.org/alpine/docker-abuild:edge
-	# cp APKBUILD dabuild
-	# mkdir -p dabuild/aports/packages/edge/mobcord
-	# cp APKBUILD dabuild/aports/packages/edge/mobcord
-	# chmod -R 777 dabuild/aports
-	# cd dabuild/aports/packages/edge/mobcord; \
-	# export DABUILD_ARCH=aarch64; \
-	# export DABUILD_VERSION=edge; \
-	# export DABUILD_PACKAGES=../../../; \
-	# echo "$${PWD%*/aports*}" "$$PWD"; \
-	# ../../../../dabuild checksum; \
-	# ../../../../dabuild -r
+PACKAGES += build/mobcord-alpine-aarch64.apk
+build/mobcord-alpine-aarch64.apk: APKBUILD
+	mkdir -p build
 	docker run --rm --privileged multiarch/qemu-user-static --reset --persistent yes --credential yes
+	docker remove alpine-mobcord --force || true
 	docker create --name alpine-mobcord --network host -ti --platform arm64 alpine:latest
 	docker start alpine-mobcord
 	docker exec -ti alpine-mobcord /bin/sh -c " \
 		adduser -D user; \
 		addgroup user abuild; \
 		addgroup user wheel; \
-		apk add alpine-sdk sudo git abuild abuild-rootbld; \
+		apk add alpine-sdk sudo git abuild; \
 		mkdir -p /var/cache/distfiles; \
 		chgrp abuild /var/cache/distfiles; \
 		chmod g+w /var/cache/distfiles; \
 		mkdir -p /home/user/dev/testing/mobcord; \
 		chmod -R 777 /home/user/dev/testing/mobcord; \
 	"
-	docker cp APKBUILD alpine-mobcord:/home/user/dev/testing/mobcord/APKBUILD
+	docker cp $< alpine-mobcord:/home/user/dev/testing/mobcord/APKBUILD
 	docker exec -tiu user alpine-mobcord /bin/sh -c " \
 		git config --global user.name "MeexReay"; \
 		git config --global user.email "meexreay@gmail.com"; \
 		abuild-keygen -a -n; \
 		cd ~/dev/testing/mobcord; \
 		abuild checksum; \
-		abuild -r; \
-		sh; \
+		abuild -r || true; \
 	"
+	docker cp alpine-mobcord:/home/user/packages/testing/aarch64/mobcord-0.1.0-r0.apk $@
+	docker stop alpine-mobcord --signal 9
+	docker remove alpine-mobcord
 	[ -f $@ ]
 
 target/release/mobcord:

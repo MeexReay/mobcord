@@ -1,0 +1,15 @@
+name: Build action
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'logo.png'
+
+jobs:
+  build-apk:
+    name: Build APK package
+    runs-on: alpine-latest-aarch64
+
+    steps:
+      
