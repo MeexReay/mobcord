@@ -1,4 +1,6 @@
-DESKTOP_FILE := ~/.local/share/applications/ru.themixray.mobcord.desktop
+DESTDIR ?= ~/.local
+
+DESKTOP_FILE := $(DESTDIR)/share/applications/ru.themixray.mobcord.desktop
 
 TARGETS := x86_64-unknown-linux-musl \
 	x86_64-unknown-linux-gnu \
@@ -10,10 +12,15 @@ DOCKER_VOID_x86_64-unknown-linux-gnu := --platform amd64 ghcr.io/void-linux/void
 DOCKER_VOID_aarch64-unknown-linux-musl := --platform arm64 ghcr.io/void-linux/void-musl:20250701r1@sha256:07ddadef955026a24f610dca9a7f60336c334b0c78aa2bec01c8dec4a39fbb61
 DOCKER_VOID_aarch64-unknown-linux-gnu := --platform arm64 ghcr.io/void-linux/void-glibc:20250701r1@sha256:5f80834514350fbfa12f14b3c931b8272d8740d876def3e6959f4cf67104ca71
 
-VOID_DEPENDENCIES=libadwaita-devel gtk4-devel libwebkitgtk60-devel openssl-devel pkg-config
+VOID_DEPENDENCIES := libadwaita-devel gtk4-devel libwebkitgtk60-devel openssl-devel pkg-config
+
+PACKAGES := 
+
+.PHONY: release
+release: target/release/mobcord
 
 .PHONY: all
-all: $(TARGETS)
+all: $(PACKAGES) $(TARGETS)
 	mkdir -p build
 	for target in $(TARGETS); do \
 		build_dir="build/mobcord-$${target/unknown-linux-/}"; \
@@ -25,6 +32,8 @@ all: $(TARGETS)
 		tar -czf $$build_dir.tar.gz -C $$build_dir .; \
 		rm -rf $$build_dir; \
 	done
+
+	cp $(PACKAGES) build
 
 	mkdir -p build/mobcord-legcord
 	cp src/script.js build/mobcord-legcord/index.js
@@ -41,7 +50,7 @@ $(TARGETS): %: target/%/release/mobcord
 
 target/%/release/mobcord:
 	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-	docker run --network host -ti -v `pwd`:/mnt ${DOCKER_VOID_$*} /bin/sh -c " \
+	docker run --rm --network host -ti -v `pwd`:/mnt ${DOCKER_VOID_$*} /bin/sh -c " \
 		xbps-install -Syu xbps; \
 		xbps-install -Sy rust cargo ${VOID_DEPENDENCIES}; \
 		cd /mnt; \
@@ -50,18 +59,59 @@ target/%/release/mobcord:
 	"
 	[ -f $@ ]
 
+PACKAGES += target/mobcord-alpine-aarch64.apk
+target/mobcord-alpine-aarch64.apk:
+	# [ -d dabuild ] || (git clone https://gitlab.alpinelinux.org/alpine/docker-abuild.git dabuild && make -C dabuild)
+	# docker pull registry.alpinelinux.org/alpine/docker-abuild:edge
+	# cp APKBUILD dabuild
+	# mkdir -p dabuild/aports/packages/edge/mobcord
+	# cp APKBUILD dabuild/aports/packages/edge/mobcord
+	# chmod -R 777 dabuild/aports
+	# cd dabuild/aports/packages/edge/mobcord; \
+	# export DABUILD_ARCH=aarch64; \
+	# export DABUILD_VERSION=edge; \
+	# export DABUILD_PACKAGES=../../../; \
+	# echo "$${PWD%*/aports*}" "$$PWD"; \
+	# ../../../../dabuild checksum; \
+	# ../../../../dabuild -r
+	docker run --rm --privileged multiarch/qemu-user-static --reset --persistent yes --credential yes
+	docker create --name alpine-mobcord --network host -ti --platform arm64 alpine:latest
+	docker start alpine-mobcord
+	docker exec -ti alpine-mobcord /bin/sh -c " \
+		adduser -D user; \
+		addgroup user abuild; \
+		addgroup user wheel; \
+		apk add alpine-sdk sudo git abuild abuild-rootbld; \
+		mkdir -p /var/cache/distfiles; \
+		chgrp abuild /var/cache/distfiles; \
+		chmod g+w /var/cache/distfiles; \
+		mkdir -p /home/user/dev/testing/mobcord; \
+		chmod -R 777 /home/user/dev/testing/mobcord; \
+	"
+	docker cp APKBUILD alpine-mobcord:/home/user/dev/testing/mobcord/APKBUILD
+	docker exec -tiu user alpine-mobcord /bin/sh -c " \
+		git config --global user.name "MeexReay"; \
+		git config --global user.email "meexreay@gmail.com"; \
+		abuild-keygen -a -n; \
+		cd ~/dev/testing/mobcord; \
+		abuild checksum; \
+		abuild -r; \
+		sh; \
+	"
+	[ -f $@ ]
+
 target/release/mobcord:
 	cargo build -r
 
 .PHONY: install
 install: target/release/mobcord
-	mkdir -p ~/.local
-	mkdir -p ~/.local/bin
-	cp target/release/mobcord ~/.local/bin/mobcord
-	chmod +x ~/.local/bin/mobcord
-	mkdir -p ~/.local/share/mobcord
-	cp logo.png ~/.local/share/mobcord
-	mkdir -p ~/.local/share/applications
+	mkdir -p $(DESTDIR)
+	mkdir -p $(DESTDIR)/bin
+	cp target/release/mobcord $(DESTDIR)/bin/mobcord
+	chmod +x $(DESTDIR)/bin/mobcord
+	mkdir -p $(DESTDIR)/share/mobcord
+	cp logo.png $(DESTDIR)/share/mobcord
+	mkdir -p $(DESTDIR)/share/applications
 	echo "[Desktop Entry]" > ${DESKTOP_FILE}
 	echo "Name=Mobcord" >> ${DESKTOP_FILE}
 	echo "Type=Application" >> ${DESKTOP_FILE}
@@ -75,8 +125,8 @@ install: target/release/mobcord
 
 .PHONY: uninstall
 uninstall:
-	rm -rf ~/.local/bin/mobcord
-	rm -rf ~/.local/share/mobcord
+	rm -rf $(DESTDIR)/bin/mobcord
+	rm -rf $(DESTDIR)/share/mobcord
 	rm ${DESKTOP_FILE}
 
 .PHONY: clean
