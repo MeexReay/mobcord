@@ -18,5 +18,4 @@ build() {
 
 package() {
 	make DESTDIR="$pkgdir"/usr install
-	mv "$pkgdir"/usr/bin "$pkgdir"/bin
 }
