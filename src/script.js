@@ -429,9 +429,9 @@ function bindTextBoxFocus() {
   
   document.addEventListener("focus", e => {
     console.log(allowTextBoxFocus);
-    if (o.target.closest('[role="textbox"]') && !allowTextBoxFocus) {
+    if (e.target.closest('[role="textbox"]') && !allowTextBoxFocus) {
       e.preventDefault();
-      o.blur();
+      e.target.blur();
     }
   }, true);
   
@@ -445,7 +445,7 @@ function bindTextBoxFocus() {
   }, true);
 }
 
-function doAlways() {
+function onLoadInternal() {
   catchUrlChange();
   
   querySelect('[class^="sidebarResizeHandle_"]', (o) => o.remove());
@@ -498,19 +498,34 @@ function doAlways() {
     }
 
     /* fix profile view */
-    [class^="focusLock_"] > div,
-    [class^="focusLock_"] > div > div,
-    [class^="focusLock_"] > div > div > div {
+    .user-profile-modal-v2 {
+      width: 400px;
       max-width: 100%;
+      min-width: 0;
+    }
+    .user-profile-modal-v2 > [class^="inner_"] {
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden scroll;
+      box-sizing: border-box;
+      padding: 0;
+    }
+    .user-profile-modal-v2 > [class^="inner_"] > [class^="container_"] {
+      height: auto;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 20px 20px 0;
+    }
+    .user-profile-modal-v2 > [class^="inner_"] > [class^="profile_"] {
       width: 100%;
     }
-    [class^="focusLock_"] > div > div > div > [class^="body_"] > div:nth-of-type(2) > [class^="scroller"] > section:nth-of-type(2) > ul,
-    [class^="focusLock_"] > div > div > div > [class^="body_"] > div:nth-of-type(2) > [role="tablist"] {
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    [class^="focusLock_"] > div > div > div > [class^="body_"] > div:nth-of-type(2) > [class^="scroller"] > section:nth-of-type(2) > ul > * {
-      margin-left: 0;
+    :where(.outer_c0bea0).user-profile-modal-v2 {
+      width: 400px;
+      max-width: 100%;
+      min-width: 0;
+      height: auto;
+      max-height: 800px;
     }
 
     /* allow scrolling in settings */
@@ -580,4 +595,6 @@ function doAlways() {
   }
 }
 
-doAlways()
+function onUnloadInternal() {
+  
+}

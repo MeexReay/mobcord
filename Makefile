@@ -23,13 +23,19 @@ all: $(TARGETS)
 		cp install.sh $$build_dir; \
 		cp uninstall.sh $$build_dir; \
 		tar -czf $$build_dir.tar.gz -C $$build_dir .; \
+		rm -rf $$build_dir; \
 	done
+
 	mkdir -p build/mobcord-legcord
 	cp src/script.js build/mobcord-legcord/index.js
-	echo "export function onLoad() { doAlways(); }" >> build/mobcord-legcord/index.js
-	echo "export function onUnload() { /* todo: write unload function */ }" >> build/mobcord-legcord/index.js
+	echo "export function onLoad() { onLoadInternal(); }" >> build/mobcord-legcord/index.js
+	echo "export function onUnload() { onUnloadInternal(); }" >> build/mobcord-legcord/index.js
 	echo "{\"name\": \"Mobcord\", \"description\": \"discord client for mobile linux\"}" > build/mobcord-legcord/plugin.json
 	tar -czf build/mobcord-legcord.tar.gz -C build/mobcord-legcord .
+	rm -rf build/mobcord-legcord
+	
+	cp src/script.js build/mobcord-userscript.js
+	echo "onLoadInternal();" >> build/mobcord-userscript.js
 
 $(TARGETS): %: target/%/release/mobcord
 

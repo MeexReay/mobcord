@@ -48,7 +48,7 @@ fn load_css() {
 }
 
 fn load_scripts(webview: &WebView) {
-    let script = include_str!("script.js");
+    let script = format!("{}\nonLoadInternal();", include_str!("script.js"));
 
     webview.evaluate_javascript(
         &script,
