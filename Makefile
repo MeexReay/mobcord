@@ -11,7 +11,7 @@ DOCKER_VOID_aarch64-unknown-linux-gnu := --platform arm64 ghcr.io/void-linux/voi
 
 VOID_DEPENDENCIES := libadwaita-devel gtk4-devel libwebkitgtk60-devel openssl-devel pkg-config
 
-PACKAGES := 
+PACKAGES := build/mobcord-alpine-aarch64.apk
 
 .PHONY: release
 release: target/release/mobcord
@@ -54,7 +54,6 @@ target/%/release/mobcord:
 	"
 	[ -f $@ ]
 
-PACKAGES += build/mobcord-alpine-aarch64.apk
 build/mobcord-alpine-aarch64.apk: APKBUILD
 	mkdir -p build
 	docker run --rm --privileged multiarch/qemu-user-static --reset --persistent yes --credential yes
