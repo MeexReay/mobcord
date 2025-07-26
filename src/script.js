@@ -151,17 +151,6 @@ function leaveChatState() {
 }
 
 function enterOptionsState() {
-  // querySelect('[class^="layer_"]:nth-of-type(1)', o => {
-  //   o.setAttribute("aria-hidden", "true");
-  //   o.style.opacity = "0";
-  //   o.style.display = "none";
-  // });
-  // querySelect('[class^="layer_"]:nth-of-type(2)', o => {
-  //   o.setAttribute("aria-hidden", "false");
-  //   o.style.opacity = null;
-  //   o.style.display = null;
-  // });
-  
   uiState = "options";
 
   let leaveButton = document.createElement("div")
@@ -190,6 +179,8 @@ function enterOptionsState() {
   }
   
   document.body.appendChild(leaveButton);
+
+  document.body.style.zoom = "80%";
 }
 
 function leaveOptionsState() {
@@ -202,18 +193,10 @@ function leaveOptionsState() {
     ctrlKey: false,
     metaKey: false
   }));
-  // querySelect('[class^="layer_"]:nth-of-type(1)', o => {
-  //   o.setAttribute("aria-hidden", "false");
-  //   o.style.opacity = null;
-  //   o.style.display = null;
-  // });
-  // querySelect('[class^="layer_"]:nth-of-type(2)', o => {
-  //   o.setAttribute("aria-hidden", "true");
-  //   o.style.opacity = "0";
-  //   o.style.display = "none";
-  // });
-  
+    
   document.body.querySelector('[id="leave-options-button"]').remove();
+
+  document.body.style.zoom = "100%";
 }
 
 function enterLoginState() {
