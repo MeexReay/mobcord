@@ -72,7 +72,14 @@ build/mobcord-alpine-aarch64.apk: APKBUILD
 		mkdir -p /home/user/dev/testing/mobcord; \
 		chmod -R 777 /home/user/dev/testing/mobcord; \
 	"
-	docker cp $< alpine-mobcord:/home/user/dev/testing/mobcord/APKBUILD
+	docker cp . alpine-mobcord:/home/user/dev/testing/mobcord/mobcord-src
+	docker exec -ti alpine-mobcord /bin/sh -c " \
+		cd /home/user/dev/testing/mobcord; \
+		chmod -R 777 mobcord-src; \
+		mv mobcord-src/APKBUILD .; \
+		tar -czf mobcord-src.tar.gz mobcord-src; \
+		rm -rf mobcord-src; \
+	"
 	docker exec -tiu user alpine-mobcord /bin/sh -c " \
 		git config --global user.name "MeexReay"; \
 		git config --global user.email "meexreay@gmail.com"; \

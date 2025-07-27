@@ -9,13 +9,13 @@ depends="libadwaita gtk4.0 webkit2gtk-6.0 openssl gstreamer gst-plugins-bad gst-
 makedepends="libadwaita-dev gtk4.0-dev webkit2gtk-6.0-dev openssl-dev pkgconf pkgconf-dev rust cargo"
 install=""
 options="!check net"
-source="$pkgname-$pkgver.tar.gz::https://github.com/MeexReay/mobcord/archive/refs/heads/main.tar.gz"
-builddir="$srcdir/$pkgname-main"
+source="mobcord-src.tar.gz"
+builddir="$srcdir/mobcord-src"
 
 build() {
 	RUSTFLAGS="-C target-feature=-crt-static" cargo build -r
 }
 
 package() {
-	make DESTDIR="$pkgdir"/usr install
+	make HOSTDIR=/usr DESTDIR="$pkgdir"/usr install
 }
