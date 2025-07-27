@@ -1,4 +1,5 @@
 DESTDIR ?= ${HOME}/.local
+HOSTDIR ?= ${HOME}/.local
 
 DESKTOP_FILE := $(DESTDIR)/share/applications/ru.themixray.mobcord.desktop
 
@@ -57,9 +58,9 @@ target/%/release/mobcord:
 build/mobcord-alpine-aarch64.apk: APKBUILD
 	mkdir -p build
 	docker run --rm --privileged multiarch/qemu-user-static --reset --persistent yes --credential yes
-	docker remove alpine-mobcord --force || true
+	docker container remove alpine-mobcord --force || true
 	docker create --name alpine-mobcord --network host -ti --platform arm64 alpine:latest
-	docker start alpine-mobcord
+	docker start alpine-mobcord 
 	docker exec -ti alpine-mobcord /bin/sh -c " \
 		adduser -D user; \
 		addgroup user abuild; \
@@ -82,7 +83,7 @@ build/mobcord-alpine-aarch64.apk: APKBUILD
 	"
 	docker cp alpine-mobcord:/home/user/packages/testing/aarch64/mobcord-0.1.0-r0.apk $@
 	docker stop alpine-mobcord --signal 9
-	docker remove alpine-mobcord
+	docker container remove alpine-mobcord
 	[ -f $@ ]
 
 target/release/mobcord:
@@ -101,8 +102,8 @@ install: target/release/mobcord
 	echo "Name=Mobcord" >> ${DESKTOP_FILE}
 	echo "Type=Application" >> ${DESKTOP_FILE}
 	echo "Comment=discord client for mobile linux" >> ${DESKTOP_FILE}
-	echo "Icon=${DESTDIR}/share/mobcord/logo.png" >> ${DESKTOP_FILE}
-	echo "Exec=${DESTDIR}/bin/mobcord" >> ${DESKTOP_FILE}
+	echo "Icon=${HOSTDIR}/share/mobcord/logo.png" >> ${DESKTOP_FILE}
+	echo "Exec=${HOSTDIR}/bin/mobcord" >> ${DESKTOP_FILE}
 	echo "Categories=Network;" >> ${DESKTOP_FILE}
 	echo "StartupNotify=true" >> ${DESKTOP_FILE}
 	echo "Terminal=false" >> ${DESKTOP_FILE}
