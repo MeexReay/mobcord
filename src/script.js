@@ -395,7 +395,7 @@ function catchUrlChange() {
 
   function onChangeUrl() {
     if (document.location.pathname == "/login" && uiState != "login") {
-      doAlways();
+      onLoadInternal();
     }
   }
 
@@ -493,10 +493,17 @@ function onLoadInternal() {
     }
 
     /* fix profile view */
+    div:has(> .user-profile-modal-v2) {
+      width: 400px;
+      max-width: 100%;
+      min-width: 0;
+      margin: auto;
+    }
     .user-profile-modal-v2 {
       width: 400px;
       max-width: 100%;
       min-width: 0;
+      margin: auto;
     }
     .user-profile-modal-v2 > [class^="inner_"] {
       flex-wrap: wrap;
