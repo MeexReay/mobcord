@@ -21,7 +21,8 @@ release: target/release/mobcord
 all: $(PACKAGES) $(TARGETS)
 	mkdir -p build
 	for target in $(TARGETS); do \
-		build_dir="build/mobcord-$${target/unknown-linux-/}"; \
+		arch=$$(echo $$target | sed 's/unknown-linux-//'); \
+		build_dir="build/mobcord-$$arch"; \
 		mkdir -p $$build_dir; \
 		cp target/$$target/release/mobcord $$build_dir; \
 		cp logo.png $$build_dir; \
@@ -46,7 +47,7 @@ $(TARGETS): %: target/%/release/mobcord
 
 target/%/release/mobcord:
 	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-	docker run --rm --network host -ti -v `pwd`:/mnt ${DOCKER_VOID_$*} /bin/sh -c " \
+	docker run --rm -ti --network host -v `pwd`:/mnt ${DOCKER_VOID_$*} /bin/sh -c " \
 		xbps-install -Syu xbps; \
 		xbps-install -Sy rust cargo ${VOID_DEPENDENCIES}; \
 		cd /mnt; \
@@ -59,7 +60,7 @@ build/mobcord-alpine-aarch64.apk: APKBUILD
 	mkdir -p build
 	docker run --rm --privileged multiarch/qemu-user-static --reset --persistent yes --credential yes
 	docker container remove alpine-mobcord --force || true
-	docker create --name alpine-mobcord --network host -ti --platform arm64 alpine:latest
+	docker create -ti --name alpine-mobcord --network host --platform arm64 alpine:latest
 	docker start alpine-mobcord 
 	docker exec -ti alpine-mobcord /bin/sh -c " \
 		adduser -D user; \
