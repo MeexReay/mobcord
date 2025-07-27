@@ -10,6 +10,14 @@ Discord client for mobile linux
 
 Download prebuilt archive from releases and run `./install.sh`, to uninstall run `./uninstall.sh`
 
+#### Prebuilt alpine package (postmarketOS)
+
+Silly oneliner:
+
+```sh
+curl -Lo mobcord.apk https://github.com/MeexReay/mobcord/releases/latest/download/mobcord-alpine-aarch64.apk && sudo apk add --allow-untrusted mobcord.apk
+```
+
 #### Build manually
 
 Install all dependencies (see shell.nix) and run:
