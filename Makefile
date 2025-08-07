@@ -12,13 +12,13 @@ DOCKER_VOID_aarch64-unknown-linux-gnu := --platform arm64 ghcr.io/void-linux/voi
 
 VOID_DEPENDENCIES := libadwaita-devel gtk4-devel libwebkitgtk60-devel openssl-devel pkg-config
 
-PACKAGES := build/mobcord-alpine-aarch64.apk
+ALPINE_TARGETS := aarch64.apk x86_64.apk
 
 .PHONY: release
 release: target/release/mobcord
 
 .PHONY: all
-all: $(PACKAGES) $(TARGETS)
+all: $(TARGETS)
 	mkdir -p build
 	for target in $(TARGETS); do \
 		arch=$$(echo $$target | sed 's/unknown-linux-//'); \
@@ -44,7 +44,6 @@ all: $(PACKAGES) $(TARGETS)
 	echo "onLoadInternal();" >> build/mobcord-userscript.js
 
 $(TARGETS): %: target/%/release/mobcord
-
 target/%/release/mobcord:
 	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 	docker run --rm -ti --network host -v `pwd`:/mnt ${DOCKER_VOID_$*} /bin/sh -c " \
@@ -56,11 +55,13 @@ target/%/release/mobcord:
 	"
 	[ -f $@ ]
 
-build/mobcord-alpine-aarch64.apk: APKBUILD
+.PHONY: $(ALPINE_TARGETS) apk
+apk: $(ALPINE_TARGETS)
+$(ALPINE_TARGETS): APKBUILD
 	mkdir -p build
 	docker run --rm --privileged multiarch/qemu-user-static --reset --persistent yes --credential yes
 	docker container remove alpine-mobcord --force || true
-	docker create -ti --name alpine-mobcord --network host --platform arm64 alpine:latest
+	docker create -ti --name alpine-mobcord --network host --platform $(basename $@) alpine:latest
 	docker start alpine-mobcord 
 	docker exec -ti alpine-mobcord /bin/sh -c " \
 		adduser -D user; \
@@ -89,10 +90,10 @@ build/mobcord-alpine-aarch64.apk: APKBUILD
 		abuild checksum; \
 		abuild -r || true; \
 	"
-	docker cp alpine-mobcord:/home/user/packages/testing/aarch64/mobcord-0.1.0-r0.apk $@
+	docker cp alpine-mobcord:/home/user/packages/testing/$(basename $@)/mobcord-0.1.0-r0.apk build/mobcord-alpine-$@
 	docker stop alpine-mobcord --signal 9
 	docker container remove alpine-mobcord
-	[ -f $@ ]
+	[ -f build/mobcord-alpine-$@ ]
 
 target/release/mobcord:
 	cargo build -r
