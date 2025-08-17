@@ -38,6 +38,17 @@ To do that, download latest `mobcord-userscript.js` from releases and add it to 
 
 Download latest `mobcord-legcord.tar.gz` from releases, unzip it and add to legcord plugins.
 
+## Todo list:
+
+- [x] Basic mobile patches
+- [ ] Legcord plugin
+- [ ] Notifications
+- [ ] Voice channels
+- [ ] Voice messages
+- [ ] Vencord compatibility
+- [x] Alpine packaging
+- [ ] Debian packaging
+
 ## See more
 
 - [Vendroid](https://github.com/Vencord/Vendroid) - works on waydroid, uses discord web too
